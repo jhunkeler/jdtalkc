@@ -145,11 +145,9 @@ char *str_title_case(char *s) {
     size_t len;
     size_t i;
 
-    len = strlen(s);
     i = 0;
-    char ch;
-
-    s[i] = toupper(s[i]);
+    len = strlen(s);
+    s[i] = (char) toupper(s[i]);
     for (; i < len; i++) {
         if (i < len - 1 && s[i] == ' ') {
             s[i + 1] = (char) toupper(s[i + 1]);
