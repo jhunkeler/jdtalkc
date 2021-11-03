@@ -45,6 +45,7 @@ void dictionary_free(struct Dictionary *dict);
 char *str_random_case(char *s);
 char *str_hill_case(char *s);
 char *str_leet(char *s);
+char *str_title_case(char *s);
 
 char *talkf(struct Dictionary *dict, const char *fmt, char **parts);
 char *talk_salad(struct Dictionary *dict, size_t limit, char **parts);
