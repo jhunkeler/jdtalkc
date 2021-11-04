@@ -1,7 +1,7 @@
 #include "jdtalk.h"
 
 static const char *usage_text = \
-        "usage: %s [-h] [-befHlr] [-s salad_word_count] [-c line_limit] [-p pattern] [-a acronym]\n"
+        "usage: %s [-h] [-befHlrt] [-s salad_word_count] [-c line_limit] [-p pattern] [-a acronym]\n"
         "  -a str    Acronym mode\n"
         "  -b        Enable benchmark output\n"
         "  -c num    Output `num` lines\n"
