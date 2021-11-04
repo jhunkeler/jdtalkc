@@ -24,9 +24,7 @@ static void usage(char *name) {
     strcpy(buf, name);
     begin = strrchr(buf, '/');
     if (begin && strlen(begin)) {
-        printf("%s\n", begin);
         memmove(begin, begin + 1, strlen(begin));
-        printf("%s\n", begin);
     } else {
         begin = buf;
     }
