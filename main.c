@@ -12,7 +12,9 @@ static const char *usage_text = \
         "  -H        Produce hill-cased strings (hIlL cAsE)\n"
         "  -l        Produce leet speak strings (1337 5|*34|<)\n"
         "  -r        Produce random-case strings (raNdoM CasE)\n"
+        "  -R        Produce reversed strings (sgnirts desrever)\n"
         "  -s num    Produce word salad (`num` words per line)\n"
+        "  -S        Produce shuffled strings (fsfhleudf sntsrgi)\n"
         "  -t        Produce title-case strings (Title Case)\n"
         "\n";
 
@@ -49,6 +51,8 @@ int main(int argc, char *argv[]) {
     int do_benchmark;
     int do_title_case;
     int salad_limit;
+    int do_shuffle;
+    int do_reverse;
     size_t limit;
     float start_time;
     float end_time;
@@ -63,6 +67,8 @@ int main(int argc, char *argv[]) {
     do_salad = 0;
     do_benchmark = 0;
     do_title_case = 0;
+    do_shuffle = 0;
+    do_reverse = 0;
     limit = 0;
     salad_limit = 10;
 
@@ -116,6 +122,12 @@ int main(int argc, char *argv[]) {
         if (strcmp(argv[i], "-t") == 0) {
             do_title_case = 1;
         }
+        if (strcmp(argv[i], "-S") == 0) {
+            do_shuffle = 1;
+        }
+        if (strcmp(argv[i], "-R") == 0) {
+            do_reverse = 1;
+        }
     }
 
     dict = dictionary_populate();
@@ -134,7 +146,6 @@ int main(int argc, char *argv[]) {
         start_time = (float)clock() / CLOCKS_PER_SEC;
 
     for (size_t i = 1; ; i++) {
-        LABEL_TRY_AGAIN:
         memset(part, 0, sizeof(part) / sizeof(*part) * sizeof(char *));
 
         if (do_salad) {
@@ -161,7 +172,8 @@ int main(int argc, char *argv[]) {
                 }
             }
             if (!found) {
-                goto LABEL_TRY_AGAIN;
+                i--;
+                continue;
             }
         }
 
@@ -173,6 +185,10 @@ int main(int argc, char *argv[]) {
             strcpy(buf, str_leet(buf));
         } else if (do_title_case) {
             str_title_case(buf);
+        } else if (do_shuffle) {
+            str_randomize_words(buf);
+        } else if (do_reverse) {
+            str_reverse(buf);
         }
         puts(buf);
 

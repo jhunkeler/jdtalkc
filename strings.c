@@ -155,3 +155,50 @@ char *str_title_case(char *s) {
     }
     return s;
 }
+
+char *str_randomize(char *s) {
+    size_t len;
+    char tmp = 0;
+    len = strlen(s);
+    for (size_t i = len - 1; i > 0; i--) {
+        size_t from = random() % i + 1;
+        tmp = s[from];
+        s[from] = s[i];
+        s[i] = tmp;
+    }
+    return s;
+}
+
+char *str_randomize_words(char *s) {
+    char old[OUTPUT_SIZE_MAX];
+    char buf[OUTPUT_SIZE_MAX];
+    char *oldp;
+    char *word;
+
+    strcpy(old, s);
+    oldp = old;
+    memset(buf, '\0', sizeof(buf));
+    size_t len = strlen(s);
+
+    while ((word = strsep(&oldp, " ")) != NULL) {
+        str_randomize(word);
+        strcat(buf, word);
+        strcat(buf, " ");
+    }
+    strncpy(s, buf, len);
+    return s;
+}
+
+char *str_reverse(char *s) {
+    size_t dest;
+    char buf[1024];
+    buf[0] = '\0';
+
+    dest = 0;
+    for (size_t src = strlen(s); src > 0; src--, dest++) {
+        buf[dest] = s[src - 1];
+    }
+    buf[dest] = '\0';
+    strcpy(s, buf);
+    return s;
+}
