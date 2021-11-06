@@ -2,8 +2,8 @@
 
 struct Dictionary *dictionary_new() {
     struct Dictionary *dict;
-    dict = calloc(1, sizeof(*dict));
-    dict->words = calloc(DICT_INITIAL_SIZE, sizeof(**dict->words));
+    dict = malloc(1 * sizeof(*dict));
+    dict->words = malloc(DICT_INITIAL_SIZE * sizeof(**dict->words));
     dict->nelem_alloc = DICT_INITIAL_SIZE;
     dict->nelem_inuse = 0;
     return dict;
@@ -20,7 +20,7 @@ void dictionary_append(struct Dictionary **dict, char *s, unsigned type) {
         }
         (*dict)->words = tmp;
     }
-    (*dict)->words[(*dict)->nelem_inuse] = calloc(1, sizeof(**(*dict)->words));
+    (*dict)->words[(*dict)->nelem_inuse] = malloc(1 * sizeof(**(*dict)->words));
     (*dict)->words[(*dict)->nelem_inuse]->word = strdup(s);
     (*dict)->words[(*dict)->nelem_inuse]->nchar = strlen(s) - 1;
     *((*dict)->words[(*dict)->nelem_inuse]->word + ((*dict)->words[(*dict)->nelem_inuse]->nchar)) = '\0';
@@ -29,18 +29,18 @@ void dictionary_append(struct Dictionary **dict, char *s, unsigned type) {
 }
 
 int dictionary_read(FILE *fp, struct Dictionary **dict, unsigned type) {
-    //char buf[DICT_WORD_SIZE_MAX];
-    char *bufp = calloc(DICT_WORD_SIZE_MAX, sizeof(char));
-    //bufp = buf;
-    while ((fgets(bufp, DICT_WORD_SIZE_MAX - 1, fp) != NULL)) {
+    char *buf;
+
+    buf = malloc(DICT_WORD_SIZE_MAX * sizeof(char));
+    while ((fgets(buf, DICT_WORD_SIZE_MAX - 1, fp) != NULL)) {
         if (errno) {
             return errno;
         }
-        if (*bufp == '\0' || *bufp == '\n')
+        if (*buf == '\0' || *buf == '\n')
             continue;
-        dictionary_append(&(*dict), bufp, type);
+        dictionary_append(&(*dict), buf, type);
     }
-    free(bufp);
+    free(buf);
     return 0;
 }
 
@@ -121,7 +121,7 @@ int dictionary_contains(struct Dictionary *dict, const char *s, unsigned type) {
 char *dictionary_word(struct Dictionary *dict, unsigned type) {
     struct Word *word;
     while (1) {
-        size_t index = rand() % dict->nelem_inuse;
+        size_t index = random() % dict->nelem_inuse;
         word = dict->words[index];
         if (word->type == type || type == WT_ANY) {
             return word->word;
