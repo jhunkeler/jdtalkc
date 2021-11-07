@@ -163,6 +163,8 @@ int main(int argc, char *argv[]) {
         }
         if (ARG( "-f")) {
             strcpy(format, option_value);
+            i++;
+            continue;
         }
         if (ARG( "-a")) {
             if (!option_value) {
