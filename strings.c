@@ -1,16 +1,26 @@
 #include "jdtalk.h"
 
+/**
+ * Change case of a character... sometimes
+ * @param s input string (modified)
+ * @return pointer to s
+ */
 char *str_random_case(char *s) {
     size_t len;
     len = strlen(s);
     for (size_t i = 0; i < len; i++) {
-        if ((rand() % 100) >= 50) {
+        if ((random() % 100) >= 50) {
             s[i] = (char)toupper(s[i]);
         }
     }
     return s;
 }
 
+/**
+ * Capitalize every other character
+ * @param s input string (modified)
+ * @return pointer to s
+ */
 char *str_hill_case(char *s) {
     size_t len;
     len = strlen(s);
@@ -22,6 +32,11 @@ char *str_hill_case(char *s) {
     return s;
 }
 
+/**
+ * Translate characters to 1337
+ * @param s input string
+ * @return pointer to local storage (don't free it)
+ */
 char *str_leet(char *s) {
     size_t len;
     static char buf[OUTPUT_SIZE_MAX];
@@ -141,6 +156,11 @@ char *str_leet(char *s) {
     return buf;
 }
 
+/**
+ * Capitalize first character in each word
+ * @param s input string modified
+ * @return pointer to s
+ */
 char *str_title_case(char *s) {
     size_t len;
     size_t i;
@@ -156,6 +176,11 @@ char *str_title_case(char *s) {
     return s;
 }
 
+/**
+ * Randomize characters in a string
+ * @param s input string (modified)
+ * @return pointer to s
+ */
 char *str_randomize(char *s) {
     size_t len;
     char tmp = 0;
@@ -169,6 +194,11 @@ char *str_randomize(char *s) {
     return s;
 }
 
+/**
+ * Randomize words in a string
+ * @param s input string (modified)
+ * @return pointer to s
+ */
 char *str_randomize_words(char *s) {
     char old[OUTPUT_SIZE_MAX];
     char buf[OUTPUT_SIZE_MAX];
@@ -189,9 +219,14 @@ char *str_randomize_words(char *s) {
     return s;
 }
 
+/**
+ * Reverse all characters in a string
+ * @param s input string (modified)
+ * @return pointer to s
+ */
 char *str_reverse(char *s) {
     size_t dest;
-    char buf[1024];
+    char buf[OUTPUT_SIZE_MAX];
     buf[0] = '\0';
 
     dest = 0;

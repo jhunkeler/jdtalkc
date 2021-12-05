@@ -19,11 +19,16 @@ static const char *usage_text = \
         "  -t        Produce title-case strings (Title Case)\n"
         "\n";
 
+/**
+ * Print usage statement
+ * @param name program name
+ */
 static void usage(char *name) {
     char *begin;
     char buf[PATH_MAX];
     buf[0] = '\0';
 
+    // Get the basename of name
     strcpy(buf, name);
     begin = strrchr(buf, '/');
     if (begin && strlen(begin)) {
@@ -31,21 +36,31 @@ static void usage(char *name) {
     } else {
         begin = buf;
     }
+
     printf(usage_text, begin);
 }
 
+/**
+ * Validate s against possible arguments
+ * @param possible short options
+ * @param s input string to validate
+ * @return 0=invalid, 1=valid
+ */
 static int argv_validate(const char *possible, char *s) {
     if (strlen(s) > 1) {
+        // s is a short option (i.e. -c)
         for (size_t i = 0; i < strlen(possible); i++) {
             if (possible[i] == *(s + 1))
+                // s is a valid short option
                 return 1;
         }
     }
+    // s is an invalid short option
     return 0;
 }
 
 #define ARG(X) strcmp(option, X) == 0
-static const char *args_valid = "abcefhHlprRsSt";
+static const char *args_valid = "AabcefhHlprRsSt";
 
 int main(int argc, char *argv[]) {
     struct Dictionary *dict;
@@ -67,6 +82,7 @@ int main(int argc, char *argv[]) {
     int salad_limit;
     int do_shuffle;
     int do_reverse;
+    int do_format;
     size_t limit;
     float start_time;
     float end_time;
@@ -83,6 +99,7 @@ int main(int argc, char *argv[]) {
     do_title_case = 0;
     do_shuffle = 0;
     do_reverse = 0;
+    do_format = 0;
     limit = 0;
     salad_limit = 10;
 
@@ -162,6 +179,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
         if (ARG( "-f")) {
+            do_format = 1;
             strcpy(format, option_value);
             i++;
             continue;
@@ -189,13 +207,27 @@ int main(int argc, char *argv[]) {
     }
 
     dict = dictionary_populate();
+    struct Dictionary *dicts[6] = {
+        dict,             // ALL
+        dictionary_of(&dict, WT_NOUN),
+        dictionary_of(&dict, WT_ADJECTIVE),
+        dictionary_of(&dict, WT_ADVERB),
+        dictionary_of(&dict, WT_VERB),
+        NULL,
+    };
 
     if (do_pattern && !dictionary_contains(dict, pattern, WT_ANY)) {
         fprintf(stderr, "Word not found in dictionary: %s\n", pattern);
         exit(1);
     }
 
-    if ((do_pattern && do_acronym) && !acronym_safe(acronym, pattern)) {
+    if (!format_safe(format)) {
+        fprintf(stderr, "Invalid format: %s\n", format);
+        exit(1);
+    }
+
+    if ((do_pattern && do_acronym) && !acronym_safe(dict, acronym, pattern, do_format ? NULL: format)) {
+        fprintf(stderr, "Using format: %s\n", format);
         fprintf(stderr, "Word will never appear in acronym, '%s': %s\n", acronym, pattern);
         exit(1);
     }
@@ -207,23 +239,23 @@ int main(int argc, char *argv[]) {
         memset(part, 0, sizeof(part) / sizeof(*part) * sizeof(char *));
 
         if (do_salad) {
-            strcpy(buf, talk_salad(dict, salad_limit, part));
+            strcpy(buf, talk_salad(dicts, salad_limit, part, OUTPUT_PART_MAX));
         } else if (do_acronym) {
-            strcpy(buf, talk_acronym(dict, format, acronym, part));
+            strcpy(buf, talk_acronym(dicts, format, acronym, part, OUTPUT_PART_MAX));
         } else {
-            strcpy(buf, talkf(dict, format, part));
+            strcpy(buf, talkf(dicts, format, part, OUTPUT_PART_MAX));
         }
 
         if (do_pattern) {
             found = 0;
             for (size_t z = 0; part[z] != NULL; z++) {
-                if (!do_exact) {
-                    if (strstr(buf, pattern)) {
+                if (do_exact) {
+                    if (strcmp(part[z], pattern) == 0) {
                         found = 1;
                         break;
                     }
                 } else {
-                    if (strcmp(part[z], pattern) == 0) {
+                    if (strstr(buf, pattern)) {
                         found = 1;
                         break;
                     }

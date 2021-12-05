@@ -1,6 +1,23 @@
 #include "jdtalk.h"
 
-char *talkf(struct Dictionary *dict, const char *fmt, char **parts) {
+/**
+ * Produce an output string containing various user-defined types of words
+ *
+ * a = adjective
+ * d = adverb
+ * n = noun
+ * v = verb
+ * x = any
+ *
+ * char *parts[1024]; // probably more than enough, right?
+ * talkf(dict, "adnvx", &parts);
+ *
+ * @param dict pointer to dictionary array
+ * @param fmt
+ * @param parts
+ * @return
+ */
+char *talkf(struct Dictionary *dict[], char *fmt, char **parts, size_t parts_max) {
     static char buf[OUTPUT_SIZE_MAX];
     buf[0] = '\0';
 
@@ -13,41 +30,48 @@ char *talkf(struct Dictionary *dict, const char *fmt, char **parts) {
     for (size_t i = 0; i < len; i++) {
         char *word = NULL;
         switch (fmt[i]) {
+            case 'x':
+                word = dictionary_word(dict[WT_ANY], WT_ANY);
+                break;
             case 'a':
-                word = dictionary_word(dict, WT_ADJECTIVE);
+                word = dictionary_word(dict[WT_ADJECTIVE], WT_ADJECTIVE);
                 break;
             case 'd':
-                word = dictionary_word(dict, WT_ADVERB);
+                word = dictionary_word(dict[WT_ADVERB], WT_ADVERB);
                 break;
             case 'n':
-                word = dictionary_word(dict, WT_NOUN);
+                word = dictionary_word(dict[WT_NOUN], WT_NOUN);
                 break;
             case 'v':
-                word = dictionary_word(dict, WT_VERB);
+                word = dictionary_word(dict[WT_VERB], WT_VERB);
                 break;
             default:
                 break;
         }
 
-        if (parts)
-            parts[i] = word;
+        if (parts) {
+            if (i < parts_max) {
+                parts[i] = word;
+            } else {
+                // We reached the maximum number of parts. Stop processing.
+                break;
+            }
+        }
 
-        strncat(buf, word, OUTPUT_SIZE_MAX);
-
-        if (i < len - 1)
-            strcat(buf, " ");
+        if (word) {
+            strncat(buf, word, OUTPUT_SIZE_MAX);
+            if (i < len - 1)
+                strcat(buf, " ");
+        }
     }
     return buf;
 }
 
-char *talk_salad(struct Dictionary *dict, size_t limit, char **parts) {
+char *talk_salad(struct Dictionary *dict[], size_t limit, char **parts, size_t parts_max) {
     static char buf[OUTPUT_SIZE_MAX];
     buf[0] = '\0';
     for (size_t i = 0; i < limit; i++) {
-        char *word = NULL;
-        word = dictionary_word(dict, WT_ANY);
-        parts[i] = word;
-        strncat(buf, word, OUTPUT_SIZE_MAX);
+        strncat(buf, talkf(dict, "x", parts, parts_max), OUTPUT_SIZE_MAX);
         if (i < limit - 1) {
             strcat(buf, " ");
         }
@@ -55,47 +79,66 @@ char *talk_salad(struct Dictionary *dict, size_t limit, char **parts) {
     return buf;
 }
 
-char *talk_acronym(struct Dictionary *dict, const char *fmt, char *s, char **parts) {
-    size_t len;
+char *talk_acronym(struct Dictionary *dict[], char *fmt, char *s, char **parts, size_t parts_max) {
+    size_t s_len;
+    size_t format_len;
+    char format[INPUT_SIZE_MAX];
     static char buf[OUTPUT_SIZE_MAX];
+    static char *local_parts[OUTPUT_PART_MAX];
     buf[0] = '\0';
+    format[0] = '\0';
 
-    len = strlen(s);
-    for (size_t i = 0; i < strlen(s); i++) {
-        char *word = NULL;
+    if (fmt) {
+        strcpy(format, fmt);
+    } else {
+        strcpy(format, "x");
+    }
+
+    s_len = strlen(s);
+    format_len = strlen(fmt);
+    if (format_len > s_len) {
+        *(format + s_len) = '\0';
+    }
+
+    size_t x;
+    x = 0;
+    for (size_t i = 0; i < s_len; i++) {
+        char word[OUTPUT_SIZE_MAX];
+        word[0] = '\0';
         while(1) {
-            word = dictionary_word(dict, WT_ANY);
+            char elem[2] = {0, 0};
+            elem[0] = format[x];
+            strcpy(word, talkf(dict, elem, &local_parts[i], parts_max));
             if (*word == s[i]) {
+                strncat(buf, word, OUTPUT_SIZE_MAX);
+                if (i < s_len - 1) {
+                    strcat(buf, " ");
+                }
                 break;
             }
-            /* TODO: Formatted acronyms are too slow. Need a better way.
-            if (strlen(fmt) < strlen(s)) {
-                return NULL;
-            }
-
-            char letter[2] = {'\0', '\0'};
-            for (size_t f = 0; f < strlen(fmt); f++) {
-                *letter = fmt[f];
-                word = talkf(dict, letter, NULL);
-                if (*word == s[i]) {
-                    done = 1;
-                    break;
-                }
-            }
-             */
         }
-        parts[i] = word;
-        strncat(buf, word, OUTPUT_SIZE_MAX);
-        if (i < len - 1) {
-            strcat(buf, " ");
+        if (parts) {
+            if (i < parts_max) {
+                //printf("parts[%zu]=%s\n", i, word);
+                parts[i] = local_parts[i];
+            } else {
+                // We reached the maximum number of parts. Stop processing.
+                break;
+            }
+        }
+        if (x < format_len - 1) {
+            x++;
         }
     }
     return buf;
 }
 
-int acronym_safe(const char *acronym, const char *pattern) {
+int acronym_safe(struct Dictionary *dict, const char *acronym, const char *pattern, const char *fmt) {
     size_t acronym_len;
+    size_t fmt_len;
+    size_t types_len;
     int pattern_valid;
+    int format_valid;
     pattern_valid = 0;
     acronym_len = strlen(acronym);
     for (size_t i = 0; i < acronym_len; i++) {
@@ -105,6 +148,40 @@ int acronym_safe(const char *acronym, const char *pattern) {
         }
     }
 
-    return pattern_valid;
+    format_valid = 1;
+    if (fmt) {
+        format_valid = 0;
+        char *types;
+        fmt_len = strlen(fmt);
+        types = dictionary_word_formats(dict, pattern);
+        types_len = strlen(types);
+
+        for (size_t x = 0; x < types_len; x++) {
+            if (format_valid) break;
+            for (size_t i = 0; i < fmt_len; i++) {
+                if (types[x] == fmt[i]) {
+                    format_valid = 1;
+                    break;
+                }
+            }
+
+        }
+    }
+
+    return pattern_valid - format_valid == 0;
 }
 
+int format_safe(char *s) {
+    size_t valid;
+    const char *formatter = "nadvx";
+
+    valid = 0;
+    for (size_t i = 0; i < strlen(formatter); i++) {
+        for (size_t x = 0; x < strlen(s); x++) {
+            if (s[x] == formatter[i]) {
+                valid++;
+            }
+        }
+    }
+    return valid == strlen(s);
+}
