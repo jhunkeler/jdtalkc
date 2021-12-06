@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
     limit = 0;
     salad_limit = 10;
 
-    strcpy(format, "andv");
+    strcpy(format, DEFAULT_FORMAT);
     pattern[0] = '\0';
     buf[0] = '\0';
     acronym[0] = '\0';
@@ -241,6 +241,7 @@ int main(int argc, char *argv[]) {
         if (do_salad) {
             strcpy(buf, talk_salad(dicts, salad_limit, part, OUTPUT_PART_MAX));
         } else if (do_acronym) {
+            if (strcmp(format, DEFAULT_FORMAT) == 0) strcpy(format, "xxxx");
             strcpy(buf, talk_acronym(dicts, format, acronym, part, OUTPUT_PART_MAX));
         } else {
             strcpy(buf, talkf(dicts, format, part, OUTPUT_PART_MAX));

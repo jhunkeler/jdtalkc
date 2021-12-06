@@ -172,7 +172,7 @@ struct Dictionary *dictionary_populate() {
  * @param s dictionary word to search for
  * @return a string containing the word types (i.e. n,a,d,v)
  */
-char *dictionary_word_formats(struct Dictionary *dict, char *s) {
+char *dictionary_word_formats(struct Dictionary *dict, const char *s) {
     static char buf[OUTPUT_SIZE_MAX];
     buf[0] = '\0';
 

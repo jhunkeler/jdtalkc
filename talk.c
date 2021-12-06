@@ -46,6 +46,7 @@ char *talkf(struct Dictionary *dict[], char *fmt, char **parts, size_t parts_max
                 word = dictionary_word(dict[WT_VERB], WT_VERB);
                 break;
             default:
+                fprintf(stderr, "INVALID FORMAT: %x\n", fmt[i]);
                 break;
         }
 
@@ -173,7 +174,7 @@ int acronym_safe(struct Dictionary *dict, const char *acronym, const char *patte
 
 int format_safe(char *s) {
     size_t valid;
-    const char *formatter = "nadvx";
+    const char *formatter = DEFAULT_FORMAT"x";
 
     valid = 0;
     for (size_t i = 0; i < strlen(formatter); i++) {

@@ -15,6 +15,8 @@
 #define OUTPUT_PART_MAX 255
 #define OUTPUT_SIZE_MAX 1024
 
+#define DEFAULT_FORMAT "andv"
+
 #define WT_ICASE 0x80
 #define WT_ANY 0
 #define WT_NOUN 1
@@ -40,7 +42,7 @@ int dictionary_read(FILE *fp, struct Dictionary **dict, unsigned type);
 struct Dictionary *dictionary_populate();
 int dictionary_contains(struct Dictionary *dict, const char *s, unsigned type);
 char *dictionary_word(struct Dictionary *dict, unsigned type);
-char *dictionary_word_formats(struct Dictionary *dict, char *s);
+char *dictionary_word_formats(struct Dictionary *dict, const char *s);
 struct Dictionary *dictionary_of(struct Dictionary **src, unsigned type);
 void dictionary_free(struct Dictionary *dict);
 
