@@ -216,7 +216,7 @@ int main(int argc, char *argv[]) {
         NULL,
     };
 
-    if (do_pattern && !dictionary_contains(dict, pattern, WT_ANY)) {
+    if (do_pattern && !dictionary_contains(&dicts[1], pattern, WT_ANY)) {
         fprintf(stderr, "Word not found in dictionary: %s\n", pattern);
         exit(1);
     }

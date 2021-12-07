@@ -238,33 +238,39 @@ char *dictionary_word_formats(struct Dictionary *dict, const char *s) {
  * @param type type of word (WT_NOUN, WT_VERB, WT_ADVERB, WT_ADJECTIVE) || (WT_ANY, WT_ICASE)
  * @return 0=not found, !0=found
  */
-int dictionary_contains(struct Dictionary *dict, const char *s, unsigned type) {
-    int result;
+unsigned dictionary_contains(struct Dictionary *dict[], const char *s, unsigned type) {
+    unsigned result;
+    int found;
     unsigned icase;
 
     icase = type & WT_ICASE; // Determine case-sensitivity of the search function
     type &= 0x7f;  // Strip case-insensitive flag from type
     result = 0;
 
-    for (size_t i = 0; i < dict->nelem_inuse; i++) {
-        if (*s != *dict->words[i]->word) {
-            // Didn't start with first character in s
-            continue;
-        }
+    for (size_t x = 0; dict[x] != NULL; x++) {
+        found = 0;
+        struct Dictionary *rec = dict[x];
+        for (size_t i = 0; i < rec->nelem_inuse; i++) {
+            if (*s != *rec->words[i]->word) {
+                // Didn't start with first character in s
+                continue;
+            }
 
-        if (type != WT_ANY && dict->words[i]->type != type) {
-            // Incorrect type of word
-            continue;
-        }
+            if (type != WT_ANY && rec->words[i]->type != type) {
+                // Incorrect type of word
+                continue;
+            }
 
-        if (icase) {
-            result = strcasecmp(dict->words[i]->word, s) == 0;
-        } else {
-            result = strcmp(dict->words[i]->word, s) == 0;
-        }
+            if (icase) {
+                found = strcasecmp(rec->words[i]->word, s) == 0;
+            } else {
+                found = strcmp(rec->words[i]->word, s) == 0;
+            }
 
-        if (result) {
-            break;
+            if (found) {
+                result |= (unsigned) rec->words[i]->type;
+                break;
+            }
         }
     }
     return result;

@@ -40,7 +40,7 @@ struct Dictionary *dictionary_new();
 void dictionary_append(struct Dictionary **dict, char *s, unsigned type);
 int dictionary_read(FILE *fp, struct Dictionary **dict, unsigned type);
 struct Dictionary *dictionary_populate();
-int dictionary_contains(struct Dictionary *dict, const char *s, unsigned type);
+unsigned dictionary_contains(struct Dictionary *dict[], const char *s, unsigned type);
 char *dictionary_word(struct Dictionary *dict, unsigned type);
 char *dictionary_word_formats(struct Dictionary *dict, const char *s);
 struct Dictionary *dictionary_of(struct Dictionary **src, unsigned type);
@@ -52,7 +52,6 @@ char *str_leet(char *s);
 char *str_title_case(char *s);
 char *str_randomize_words(char *s);
 char *str_reverse(char *s);
-char *str_album(char *s, char **parts);
 
 char *talkf(struct Dictionary *dict[], char *fmt, char **parts, size_t parts_max);
 char *talk_salad(struct Dictionary *dict[], size_t limit, char **parts, size_t parts_max);

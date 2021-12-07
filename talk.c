@@ -82,20 +82,20 @@ char *talk_salad(struct Dictionary *dict[], size_t limit, char **parts, size_t p
 
 char *talk_acronym(struct Dictionary *dict[], char *fmt, char *s, char **parts, size_t parts_max) {
     size_t s_len;
-    size_t format_len;
-    char format[INPUT_SIZE_MAX];
     static char buf[OUTPUT_SIZE_MAX];
     static char *local_parts[OUTPUT_PART_MAX];
     buf[0] = '\0';
+    s_len = strlen(s);
+    /*
+    size_t format_len;
+    char format[INPUT_SIZE_MAX];
     format[0] = '\0';
-
     if (fmt) {
         strcpy(format, fmt);
     } else {
         strcpy(format, "x");
     }
 
-    s_len = strlen(s);
     format_len = strlen(fmt);
     if (format_len > s_len) {
         *(format + s_len) = '\0';
@@ -103,13 +103,15 @@ char *talk_acronym(struct Dictionary *dict[], char *fmt, char *s, char **parts, 
 
     size_t x;
     x = 0;
+     */
     for (size_t i = 0; i < s_len; i++) {
         char word[OUTPUT_SIZE_MAX];
         word[0] = '\0';
         while(1) {
-            char elem[2] = {0, 0};
-            elem[0] = format[x];
-            strcpy(word, talkf(dict, elem, &local_parts[i], parts_max));
+            // Disable formatted output (again!)
+            //char elem[2] = {0, 0};
+            //elem[0] = format[x];
+            strcpy(word, talkf(dict, "x", &local_parts[i], parts_max));
             if (*word == s[i]) {
                 strncat(buf, word, OUTPUT_SIZE_MAX);
                 if (i < s_len - 1) {
@@ -127,9 +129,11 @@ char *talk_acronym(struct Dictionary *dict[], char *fmt, char *s, char **parts, 
                 break;
             }
         }
+        /*
         if (x < format_len - 1) {
             x++;
         }
+         */
     }
     return buf;
 }
