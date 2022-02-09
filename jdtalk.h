@@ -55,6 +55,7 @@ char *str_reverse(char *s);
 
 char *talkf(struct Dictionary *dict[], char *fmt, char **parts, size_t parts_max);
 char *talk_salad(struct Dictionary *dict[], size_t limit, char **parts, size_t parts_max);
+char *talk_heart(struct Dictionary *dict[], size_t word_limit, size_t word_maxlen, char **parts, size_t parts_max);
 char *talk_acronym(struct Dictionary *dict[], __attribute__((unused)) char *fmt, char *s, char **parts, size_t parts_max);
 int acronym_safe(struct Dictionary *dict, const char *acronym, const char *pattern, const char *fmt);
 int format_safe(char *s);

@@ -80,6 +80,30 @@ char *talk_salad(struct Dictionary *dict[], size_t limit, char **parts, size_t p
     return buf;
 }
 
+char *talk_heart(struct Dictionary *dict[], size_t word_limit, size_t word_maxlen, char **parts, size_t parts_max) {
+    char *seq[] = {
+    "v", "d", "x"
+    };
+    const char *prefix[] = {
+    "i", "you", "a", "be", "we", "my"
+    };
+    static char buf[OUTPUT_SIZE_MAX];
+    buf[0] = '\0';
+
+    sprintf(buf, "%s ", prefix[random() % sizeof(prefix) / sizeof(*prefix)]);
+    for (size_t i = 1; i < word_limit; ) {
+        char *word = talkf(dict, seq[random() % sizeof(seq) / sizeof(*seq)], parts, parts_max);
+        if (strlen(word) <= word_maxlen) {
+            strcat(buf, word);
+            if (i < word_limit - 1) {
+                strcat(buf, " ");
+            }
+            i++;
+        }
+    }
+    return buf;
+}
+
 char *talk_acronym(struct Dictionary *dict[], char *fmt, char *s, char **parts, size_t parts_max) {
     size_t s_len;
     static char buf[OUTPUT_SIZE_MAX];

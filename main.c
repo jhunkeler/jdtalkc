@@ -1,7 +1,7 @@
 #include "jdtalk.h"
 
 static const char *usage_text = \
-        "usage: %s [-h] [-befHlrt] [-s salad_word_count] [-c line_limit] [-p pattern] [-a acronym]\n"
+        "usage: %s [-h] [-befHlrtx] [-s salad_word_count] [-c line_limit] [-p pattern] [-a acronym]\n"
         "  -a str    Acronym mode\n"
         "  -b        Enable benchmark output\n"
         "  -c num    Output `num` lines\n"
@@ -17,6 +17,7 @@ static const char *usage_text = \
         "  -s num    Produce word salad (`num` words per line)\n"
         "  -S        Produce shuffled strings (fsfhleudf sntsrgi)\n"
         "  -t        Produce title-case strings (Title Case)\n"
+        "  -x        Produce heart candy phrases\n"
         "\n";
 
 /**
@@ -60,7 +61,7 @@ static int argv_validate(const char *possible, char *s) {
 }
 
 #define ARG(X) strcmp(option, X) == 0
-static const char *args_valid = "AabcefhHlprRsSt";
+static const char *args_valid = "AabcefhHlprRsStx";
 
 int main(int argc, char *argv[]) {
     struct Dictionary *dict;
@@ -83,7 +84,10 @@ int main(int argc, char *argv[]) {
     int do_shuffle;
     int do_reverse;
     int do_format;
+    int do_heart;
     size_t limit;
+    size_t heart_limit;
+    size_t heart_maxlen;
     float start_time;
     float end_time;
     float time_elapsed;
@@ -100,8 +104,11 @@ int main(int argc, char *argv[]) {
     do_shuffle = 0;
     do_reverse = 0;
     do_format = 0;
+    do_heart = 0;
     limit = 0;
     salad_limit = 10;
+    heart_limit = 3;
+    heart_maxlen = 5;
 
     strcpy(format, DEFAULT_FORMAT);
     pattern[0] = '\0';
@@ -122,14 +129,14 @@ int main(int argc, char *argv[]) {
             usage(argv[0]);
             exit(1);
         }
-        if (ARG( "-h")) {
+        if (ARG("-h")) {
             usage(argv[0]);
             exit(0);
         }
-        if (ARG( "-b")) {
+        if (ARG("-b")) {
             do_benchmark = 1;
         }
-        if (ARG( "-c")) {
+        if (ARG("-c")) {
             if (!option_value || *option_value == '-') {
                 fprintf(stderr, "requires a positive integer option_value\n");
                 exit(1);
@@ -142,7 +149,7 @@ int main(int argc, char *argv[]) {
             i++;
             continue;
         }
-        if (ARG( "-p")) {
+        if (ARG("-p")) {
             if (!option_value || *option_value == '-') {
                 fprintf(stderr, "requires a dictionary word\n");
                 exit(1);
@@ -152,19 +159,19 @@ int main(int argc, char *argv[]) {
             i++;
             continue;
         }
-        if (ARG( "-e")) {
+        if (ARG("-e")) {
             do_exact = 1;
         }
-        if (ARG( "-r")) {
+        if (ARG("-r")) {
             do_random_case = 1;
         }
-        if (ARG( "-H")) {
+        if (ARG("-H")) {
             do_hill_case = 1;
         }
-        if (ARG( "-l")) {
+        if (ARG("-l")) {
             do_leet = 1;
         }
-        if (ARG( "-s")) {
+        if (ARG("-s")) {
             if (!option_value || *option_value == '-') {
                 fprintf(stderr, "requires a positive integer option_value\n");
                 exit(1);
@@ -178,13 +185,16 @@ int main(int argc, char *argv[]) {
             i++;
             continue;
         }
-        if (ARG( "-f")) {
+        if (ARG("-x")) {
+            do_heart = 1;
+        }
+        if (ARG("-f")) {
             do_format = 1;
             strcpy(format, option_value);
             i++;
             continue;
         }
-        if (ARG( "-a")) {
+        if (ARG("-a")) {
             if (!option_value) {
                 fprintf(stderr, "requires a string\n");
                 exit(1);
@@ -195,13 +205,13 @@ int main(int argc, char *argv[]) {
             i++;
             continue;
         }
-        if (ARG( "-t")) {
+        if (ARG("-t")) {
             do_title_case = 1;
         }
-        if (ARG( "-S")) {
+        if (ARG("-S")) {
             do_shuffle = 1;
         }
-        if (ARG( "-R")) {
+        if (ARG("-R")) {
             do_reverse = 1;
         }
     }
@@ -232,6 +242,11 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    if ((do_pattern && do_heart) && strlen(pattern) > heart_maxlen) {
+        fprintf(stderr, "Word '%s' is too long for heart mode. (%zu > %zu)", pattern, strlen(pattern), heart_maxlen);
+        exit(1);
+    }
+
     if (do_benchmark)
         start_time = (float)clock() / CLOCKS_PER_SEC;
 
@@ -240,6 +255,8 @@ int main(int argc, char *argv[]) {
 
         if (do_salad) {
             strcpy(buf, talk_salad(dicts, salad_limit, part, OUTPUT_PART_MAX));
+        } else if (do_heart) {
+            strcpy(buf, talk_heart(dicts, heart_limit, heart_maxlen, part, OUTPUT_PART_MAX));
         } else if (do_acronym) {
             if (strcmp(format, DEFAULT_FORMAT) == 0) strcpy(format, "xxxx");
             strcpy(buf, talk_acronym(dicts, format, acronym, part, OUTPUT_PART_MAX));
