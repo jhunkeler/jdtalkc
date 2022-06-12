@@ -5,6 +5,7 @@ static const char *usage_text = \
         "  -a str    Acronym mode\n"
         "  -b        Enable benchmark output\n"
         "  -c num    Output `num` lines\n"
+        "  -j        Enable JSON output (requires -c)"
         "  -e        Exact match (use with -p)\n"
         "  -f str    Custom output format\n"
         "            (a=adjective, d=adverb, n=noun, v=verb)\n"
@@ -61,7 +62,7 @@ static int argv_validate(const char *possible, char *s) {
 }
 
 #define ARG(X) strcmp(option, X) == 0
-static const char *args_valid = "AabcefhHlprRsStx";
+static const char *args_valid = "AabcefhHjlprRsStx";
 
 int main(int argc, char *argv[]) {
     struct Dictionary *dict;
@@ -85,6 +86,7 @@ int main(int argc, char *argv[]) {
     int do_reverse;
     int do_format;
     int do_heart;
+    int do_json;
     size_t limit;
     size_t heart_limit;
     size_t heart_maxlen;
@@ -105,6 +107,7 @@ int main(int argc, char *argv[]) {
     do_reverse = 0;
     do_format = 0;
     do_heart = 0;
+    do_json = 0;
     limit = 0;
     salad_limit = 10;
     heart_limit = 3;
@@ -135,6 +138,9 @@ int main(int argc, char *argv[]) {
         }
         if (ARG("-b")) {
             do_benchmark = 1;
+        }
+        if (ARG("-j")) {
+            do_json = 1;
         }
         if (ARG("-c")) {
             if (!option_value || *option_value == '-') {
@@ -250,6 +256,12 @@ int main(int argc, char *argv[]) {
     if (do_benchmark)
         start_time = (float)clock() / CLOCKS_PER_SEC;
 
+    if (do_json && limit) {
+        JSON_BEGIN(stdout);
+        JSON_LIST_BEGIN(stdout, "data");
+        JSON_NEXT_LINE(stdout);
+    }
+
     for (size_t i = 1; ; i++) {
         memset(part, 0, sizeof(part) / sizeof(*part) * sizeof(char *));
 
@@ -298,11 +310,26 @@ int main(int argc, char *argv[]) {
         } else if (do_reverse) {
             str_reverse(buf);
         }
-        puts(buf);
+
+        if (do_json && limit) {
+            JSON_LIST_APPEND(stdout, buf);
+            if (i < limit)
+                JSON_NEXT_ITEM(stdout)
+
+        } else {
+            puts(buf);
+        }
 
         if (limit && i == limit) {
             break;
         }
+    }
+
+    if (do_json && limit) {
+        JSON_NEXT_LINE(stdout);
+        JSON_INDENT(stdout, 1);
+        JSON_LIST_END(stdout);
+        JSON_END(stdout);
     }
 
     if (do_benchmark) {

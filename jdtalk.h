@@ -24,6 +24,15 @@
 #define WT_ADVERB 3
 #define WT_VERB 4
 
+#define JSON_BEGIN(FP) fprintf(FP, "{\n");
+#define JSON_INDENT(FP, LEVEL) for (size_t indenter = 0; indenter < LEVEL; indenter++) { fprintf(FP, "  "); }
+#define JSON_NEXT_ITEM(FP) fprintf(FP, ",\n");
+#define JSON_NEXT_LINE(FP) fprintf(FP, "\n");
+#define JSON_LIST_BEGIN(FP, KEY) JSON_INDENT(FP, 1); fprintf(FP, "\"%s\": [", KEY);
+#define JSON_LIST_APPEND(FP, VALUE) JSON_INDENT(FP, 2); fprintf(FP, "\"%s\"", VALUE);
+#define JSON_LIST_END(FP) fprintf(FP, "]\n");
+#define JSON_END(FP) fprintf(FP, "}\n");
+
 struct Word {
     char *word;
     unsigned type;
