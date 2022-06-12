@@ -67,6 +67,7 @@ static const char *args_valid = "AabcefhHjlprRsStx";
 int main(int argc, char *argv[]) {
     struct Dictionary *dict;
     char buf[OUTPUT_SIZE_MAX];
+    char errbuf[OUTPUT_SIZE_MAX];
     char format[INPUT_SIZE_MAX];
     char pattern[INPUT_SIZE_MAX];
     char acronym[INPUT_SIZE_MAX];
@@ -232,35 +233,37 @@ int main(int argc, char *argv[]) {
         NULL,
     };
 
+    if (do_json && limit) {
+        JSON_BEGIN(stdout);
+        JSON_LIST_BEGIN(stdout, "data");
+    }
+
     if (do_pattern && !dictionary_contains(&dicts[1], pattern, WT_ANY)) {
-        fprintf(stderr, "Word not found in dictionary: %s\n", pattern);
-        exit(1);
+        sprintf(errbuf, "Word not found in dictionary: %s", pattern);
+        goto error_exit;
     }
 
     if (!format_safe(format)) {
-        fprintf(stderr, "Invalid format: %s\n", format);
-        exit(1);
+        sprintf(errbuf, "Invalid format: %s", format);
+        goto error_exit;
     }
 
     if ((do_pattern && do_acronym) && !acronym_safe(dict, acronym, pattern, do_format ? NULL: format)) {
-        fprintf(stderr, "Using format: %s\n", format);
-        fprintf(stderr, "Word will never appear in acronym, '%s': %s\n", acronym, pattern);
-        exit(1);
+        sprintf(errbuf, "Word will never appear in acronym, '%s': %s (format: %s)", acronym, pattern, format);
+        goto error_exit;
     }
 
     if ((do_pattern && do_heart) && strlen(pattern) > heart_maxlen) {
-        fprintf(stderr, "Word '%s' is too long for heart mode. (%zu > %zu)", pattern, strlen(pattern), heart_maxlen);
-        exit(1);
+        sprintf(errbuf, "Word is too long for heart mode: %s (%zu > %zu)", pattern, strlen(pattern), heart_maxlen);
+        goto error_exit;
+    }
+
+    if (do_json && limit) {
+        JSON_NEXT_LINE(stdout);
     }
 
     if (do_benchmark)
         start_time = (float)clock() / CLOCKS_PER_SEC;
-
-    if (do_json && limit) {
-        JSON_BEGIN(stdout);
-        JSON_LIST_BEGIN(stdout, "data");
-        JSON_NEXT_LINE(stdout);
-    }
 
     for (size_t i = 1; ; i++) {
         memset(part, 0, sizeof(part) / sizeof(*part) * sizeof(char *));
@@ -314,7 +317,7 @@ int main(int argc, char *argv[]) {
         if (do_json && limit) {
             JSON_LIST_APPEND(stdout, buf);
             if (i < limit)
-                JSON_NEXT_ITEM(stdout)
+                JSON_NEXT_ITEM(stdout);
 
         } else {
             puts(buf);
@@ -329,6 +332,9 @@ int main(int argc, char *argv[]) {
         JSON_NEXT_LINE(stdout);
         JSON_INDENT(stdout, 1);
         JSON_LIST_END(stdout);
+        JSON_NEXT_ITEM(stdout);
+        JSON_STRING(stdout, "error", "");
+        JSON_NEXT_LINE(stdout);
         JSON_END(stdout);
     }
 
@@ -340,4 +346,18 @@ int main(int argc, char *argv[]) {
 
     dictionary_free(dict);
     return 0;
+
+    error_exit:
+    if (do_json && limit) {
+        JSON_NEXT_LINE(stdout);
+        JSON_INDENT(stdout, 1);
+        JSON_LIST_END(stdout);
+        JSON_NEXT_ITEM(stdout);
+        JSON_STRING(stdout, "error", errbuf);
+        JSON_NEXT_LINE(stdout);
+        JSON_END(stdout);
+    } else {
+        fprintf(stderr, "%s\n", errbuf);
+    }
+    exit(1);
 }
