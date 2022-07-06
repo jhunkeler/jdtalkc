@@ -300,19 +300,18 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        if (do_random_case) {
+        if (do_random_case)
             str_random_case(buf);
-        } else if (do_hill_case) {
+        if (do_hill_case)
             str_hill_case(buf);
-        } else if (do_leet) {
+        if (do_leet)
             strcpy(buf, str_leet(buf));
-        } else if (do_title_case) {
+        if (do_title_case)
             str_title_case(buf);
-        } else if (do_shuffle) {
+        if (do_shuffle)
             str_randomize_words(buf);
-        } else if (do_reverse) {
+        if (do_reverse)
             str_reverse(buf);
-        }
 
         if (do_json && limit) {
             JSON_LIST_APPEND(stdout, buf);
